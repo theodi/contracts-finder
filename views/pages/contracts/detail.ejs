@@ -1,0 +1,628 @@
+<%- include('../../partials/header') %>
+
+<section class="content-block light-grey home-top">
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <a href="/contracts" class="btn btn-sm btn-default btn-primary">
+            <i class="bi bi-arrow-left"></i> Back to Contracts
+          </a>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+              <h1><%= contract.title %></h1>
+              <p class="text-muted">
+                <strong>Organisation:</strong> <%= contract.organisationName %>
+                <% if (contract.noticeIdentifier) { %>
+                  | <strong>Notice ID:</strong> <%= contract.noticeIdentifier %>
+                <% } %>
+              </p>
+              
+              <% if (contract.description) { %>
+                <div class="well">
+                  <h4>Description</h4>
+                  <p><%= contract.description.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>') %></p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <% if (contract.aiRating && contract.aiRating.score) { %>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="panel panel-<%= getRatingPanelClass(contract.aiRating.relevance) %>">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <i class="bi bi-star"></i> AI Rating & Analysis
+                      <span class="label label-<%= getRatingColor(contract.aiRating.relevance) %> pull-right">
+                        <%= contract.aiRating.score %>/10
+                      </span>
+                    </h4>
+                  </div>
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <h5>Rating Summary</h5>
+                        <p><strong>Score:</strong> <%= contract.aiRating.score %>/10</p>
+                        <p><strong>Relevance:</strong> 
+                          <span class="label label-<%= getRatingColor(contract.aiRating.relevance) %>">
+                            <%= contract.aiRating.relevance.charAt(0).toUpperCase() + contract.aiRating.relevance.slice(1) %>
+                          </span>
+                        </p>
+                        <p><strong>Explanation:</strong> <%= contract.aiRating.explanation %></p>
+                        <% if (contract.aiRating.ratedAt) { %>
+                          <p><strong>Rated:</strong> <%= new Date(contract.aiRating.ratedAt).toISOString().split('T')[0] %></p>
+                        <% } %>
+                      </div>
+                      <div class="col-md-6">
+                        <h5>Opportunity Description</h5>
+                        <p><%= contract.aiRating.opportunityDescription %></p>
+                      </div>
+                    </div>
+                    
+                    <% if (contract.aiRating.matchReasons && contract.aiRating.matchReasons.length > 0) { %>
+                      <hr>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <h5>Why This Matches Your Organisation</h5>
+                          <ul>
+                            <% contract.aiRating.matchReasons.forEach(function(reason) { %>
+                              <li><%= reason %></li>
+                            <% }); %>
+                          </ul>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <i class="bi bi-star"></i> AI Rating
+                    </h4>
+                  </div>
+                  <div class="panel-body">
+                    <p class="text-muted">This contract has not been rated by AI yet.</p>
+                    <button id="rateContract" class="btn btn-primary">
+                      <i class="bi bi-star"></i> Rate This Contract
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } %>
+          
+          <% if (contract.aiRating && contract.aiRating.score) { %>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">
+                      <i class="bi bi-arrow-clockwise"></i> Re-rate Contract
+                    </h4>
+                  </div>
+                  <div class="panel-body">
+                    <p class="text-muted">Want a fresh AI analysis? Click below to re-rate this contract.</p>
+                    <button id="reRateContract" class="btn btn-warning">
+                      <i class="bi bi-arrow-clockwise"></i> Re-rate This Contract
+                    </button>
+                    <small class="text-muted">This will update the AI rating with the latest analysis.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } %>
+          <!-- Reviewer Rating Section -->
+            <div class="row" style="margin-top: 1em; border-top: 1px solid #ccc; padding-top: 1em;">
+                <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <i class="bi bi-person-check"></i> Human Reviewer Rating
+                    </h4>
+                    </div>
+                    <div class="panel-body">
+                    <% if (contract.reviewerRating && contract.reviewerRating.score) { %>
+                        <div class="row">
+                        <div class="col-md-6">
+                            <h5>Current Reviewer Rating</h5>
+                            <p><strong>Score:</strong> <%= contract.reviewerRating.score %>/10</p>
+                            <p><strong>Relevance:</strong>
+                            <span class="label label-<%= getRatingColor(contract.reviewerRating.relevance) %>">
+                                <%= contract.reviewerRating.relevance.charAt(0).toUpperCase() + contract.reviewerRating.relevance.slice(1) %>
+                            </span>
+                            </p>
+                            <p><strong>Reviewer:</strong> <%= contract.reviewerRating.reviewerName %></p>
+                            <p><strong>Rated:</strong> <%= new Date(contract.reviewerRating.ratedAt).toISOString().split('T')[0] %></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Comments</h5>
+                            <p><%= contract.reviewerRating.comments || 'No comments provided.' %></p>
+                        </div>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">No human reviewer rating yet.</p>
+                    <% } %>
+                    <h5>Add/Update Reviewer Rating</h5>
+                    <form id="reviewerRatingForm">
+                        <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                            <label for="reviewerScore">Score (0-10)</label>
+                            <input type="number" class="form-control" id="reviewerScore" name="score" min="0" max="10" 
+                                    value="<%= contract.reviewerRating ? contract.reviewerRating.score : '' %>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                            <label for="reviewerRelevance">Relevance</label>
+                            <select class="form-control" id="reviewerRelevance" name="relevance" required>
+                                <option value="">Select relevance...</option>
+                                <option value="low" <%= contract.reviewerRating && contract.reviewerRating.relevance === 'low' ? 'selected' : '' %>>Low</option>
+                                <option value="medium" <%= contract.reviewerRating && contract.reviewerRating.relevance === 'medium' ? 'selected' : '' %>>Medium</option>
+                                <option value="high" <%= contract.reviewerRating && contract.reviewerRating.relevance === 'high' ? 'selected' : '' %>>High</option>
+                                <option value="excellent" <%= contract.reviewerRating && contract.reviewerRating.relevance === 'excellent' ? 'selected' : '' %>>Excellent</option>
+                            </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                            <label for="reviewerComments">Comments</label>
+                            <textarea class="form-control" id="reviewerComments" name="comments" rows="3" 
+                                        placeholder="Add your thoughts about this opportunity..."><%= contract.reviewerRating ? contract.reviewerRating.comments : '' %></textarea>
+                            </div>
+                        </div>
+                        </div>
+                        <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Reviewer Rating
+                            </button>
+                        </div>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <hr/>
+          <!-- HubSpot Deal Section -->
+          <div class="row" style="margin-top: 1em;">
+            <div class="col-md-12">
+              <div class="panel panel-info">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <i class="bi bi-briefcase"></i> HubSpot Deal Management
+                  </h4>
+                </div>
+                <div class="panel-body">
+                  <div id="hubspotDealStatus">
+                    <div class="text-center">
+                      <i class="bi bi-hourglass"></i> Loading deal status...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr/>
+          <div class="row" style="margin-top: 1em;">
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    Contract Information
+                  </h4>
+                </div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                        <tbody>
+                            <tr>
+                            <td width="25%"><strong>Status:</strong></td>
+                            <td><span class="label label-<%= contract.noticeStatus === 'Open' ? 'success' : 'default' %>"><%= contract.noticeStatus %></span></td>
+                            </tr>
+                            <tr>
+                            <td><strong>Type:</strong></td>
+                            <td><%= contract.noticeType %></td>
+                            </tr>
+                            <% if (contract.publishedDate) { %>
+                            <tr>
+                                <td><strong>Published:</strong></td>
+                                <td><%= new Date(contract.publishedDate).toISOString().split('T')[0] %></td>
+                            </tr>
+                            <% } %>
+                            <% if (contract.deadlineDate) { %>
+                            <tr>
+                                <td><strong>Deadline:</strong></td>
+                                <td><%= new Date(contract.deadlineDate).toISOString().split('T')[0] %></td>
+                            </tr>
+                            <% } %>
+                            <% if (contract.valueLow || contract.valueHigh) { %>
+                            <tr>
+                                <td><strong>Value Range:</strong></td>
+                                <td>
+                                <% if (contract.valueLow && contract.valueHigh) { %>
+                                    £<%= contract.valueLow.toLocaleString() %> - £<%= contract.valueHigh.toLocaleString() %>
+                                <% } else if (contract.valueLow) { %>
+                                    From £<%= contract.valueLow.toLocaleString() %>
+                                <% } else if (contract.valueHigh) { %>
+                                    Up to £<%= contract.valueHigh.toLocaleString() %>
+                                <% } %>
+                                </td>
+                            </tr>
+                            <% } %>
+                            <% if (contract.postcode) { %>
+                            <tr>
+                                <td><strong>Location:</strong></td>
+                                <td><%= contract.postcode %></td>
+                            </tr>
+                            <% } %>
+                            <% if (contract.region) { %>
+                            <tr>
+                                <td><strong>Region:</strong></td>
+                                <td><%= contract.region %></td>
+                            </tr>
+                            <% } %>
+                            <tr>
+                            <td><strong>SME Suitable:</strong></td>
+                            <td>
+                                <% if (contract.isSuitableForSme) { %>
+                                <span class="label label-success">Yes</span>
+                                <% } else { %>
+                                <span class="label label-default">No</span>
+                                <% } %>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td><strong>VCO Suitable:</strong></td>
+                            <td>
+                                <% if (contract.isSuitableForVco) { %>
+                                <span class="label label-success">Yes</span>
+                                <% } else { %>
+                                <span class="label label-default">No</span>
+                                <% } %>
+                            </td>
+                            </tr>
+                            <% if (contract.cpvCodes) { %>
+                            <tr>
+                                <td><strong>CPV Codes:</strong></td>
+                                <td><%= contract.cpvCodes %></td>
+                            </tr>
+                            <% } %>
+                            <% if (contract.cpvDescription) { %>
+                            <tr>
+                                <td><strong>CPV Description:</strong></td>
+                                <td><%= contract.cpvDescription %></td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+       
+      <% if (contract.awardedDate || contract.awardedValue || contract.awardedSupplier) { %>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-success">
+              <div class="panel-heading">
+                <h4 class="panel-title">Award Information</h4>
+              </div>
+              <div class="panel-body">
+                <div class="row">
+                  <% if (contract.awardedDate) { %>
+                    <div class="col-md-4">
+                      <strong>Awarded Date:</strong><br>
+                      <%= new Date(contract.awardedDate).toISOString().split('T')[0] %>
+                    </div>
+                  <% } %>
+                  <% if (contract.awardedValue) { %>
+                    <div class="col-md-4">
+                      <strong>Awarded Value:</strong><br>
+                      £<%= contract.awardedValue.toLocaleString() %>
+                    </div>
+                  <% } %>
+                  <% if (contract.awardedSupplier) { %>
+                    <div class="col-md-4">
+                      <strong>Awarded Supplier:</strong><br>
+                      <%= contract.awardedSupplier %>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">Additional Information</h4>
+                </div>
+                <div class="panel-body">
+                  <table class="table table-condensed">
+                    <tr>
+                      <td><strong>Item ID:</strong></td>
+                      <td><code><%= contract.itemId %></code></td>
+                    </tr>
+                    <% if (contract.parentId) { %>
+                      <tr>
+                        <td><strong>Parent ID:</strong></td>
+                        <td><code><%= contract.parentId %></code></td>
+                      </tr>
+                    <% } %>
+                    <% if (contract.sector) { %>
+                      <tr>
+                        <td><strong>Sector:</strong></td>
+                        <td><%= contract.sector %></td>
+                      </tr>
+                    <% } %>
+                    <% if (contract.lastNotifableUpdate) { %>
+                      <tr>
+                        <td><strong>Last Updated:</strong></td>
+                        <td><%= new Date(contract.lastNotifableUpdate).toISOString().split('T')[0] %></td>
+                      </tr>
+                    <% } %>
+                    <tr>
+                      <td><strong>Created in DB:</strong></td>
+                      <td><%= new Date(contract.createdAt).toISOString().split('T')[0] %></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Updated in DB:</strong></td>
+                      <td><%= new Date(contract.updatedAt).toISOString().split('T')[0] %></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<script>
+function getRatingColor(relevance) {
+  switch (relevance) {
+    case 'excellent': return 'success';
+    case 'high': return 'info';
+    case 'medium': return 'warning';
+    case 'low': return 'danger';
+    default: return 'default';
+  }
+}
+
+function getRatingPanelClass(relevance) {
+  switch (relevance) {
+    case 'excellent': return 'success';
+    case 'high': return 'info';
+    case 'medium': return 'warning';
+    case 'low': return 'danger';
+    default: return 'default';
+  }
+}
+
+// Rate contract functionality
+$('#rateContract').click(function() {
+  var button = $(this);
+  var originalText = button.html();
+  
+  button.prop('disabled', true).html('<i class="bi bi-hourglass"></i> Rating...');
+  
+  $.ajax({
+    url: '/contracts/rate/<%= contract.itemId %>',
+    method: 'POST',
+    success: function(response) {
+      if (response.success) {
+        location.reload(); // Reload to show the rating
+      } else {
+        alert('Error rating contract: ' + response.error);
+      }
+    },
+    error: function(xhr, status, error) {
+      alert('Error rating contract: ' + error);
+    },
+    complete: function() {
+      button.prop('disabled', false).html(originalText);
+    }
+  });
+});
+
+// Re-rate contract functionality
+$('#reRateContract').click(function() {
+  var button = $(this);
+  var originalText = button.html();
+  
+  button.prop('disabled', true).html('<i class="bi bi-hourglass"></i> Re-rating...');
+  
+  $.ajax({
+    url: '/contracts/rate/<%= contract.itemId %>',
+    method: 'POST',
+    success: function(response) {
+      if (response.success) {
+        location.reload(); // Reload to show the updated rating
+      } else {
+        alert('Error re-rating contract: ' + response.error);
+      }
+    },
+    error: function(xhr, status, error) {
+      alert('Error re-rating contract: ' + error);
+    },
+    complete: function() {
+      button.prop('disabled', false).html(originalText);
+    }
+  });
+});
+
+// Reviewer rating form submission
+$('#reviewerRatingForm').submit(function(e) {
+  e.preventDefault();
+  
+  var form = $(this);
+  var submitButton = form.find('button[type="submit"]');
+  var originalText = submitButton.html();
+  
+  submitButton.prop('disabled', true).html('<i class="bi bi-hourglass"></i> Saving...');
+  
+  var formData = {
+    score: $('#reviewerScore').val(),
+    relevance: $('#reviewerRelevance').val(),
+    comments: $('#reviewerComments').val()
+  };
+  
+  $.ajax({
+    url: '/contracts/reviewer-rate/<%= contract.itemId %>',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(formData),
+    success: function(response) {
+      if (response.success) {
+        alert('Reviewer rating saved successfully!');
+        location.reload(); // Reload to show the updated rating
+      } else {
+        alert('Error saving reviewer rating: ' + response.error);
+      }
+    },
+    error: function(xhr, status, error) {
+      alert('Error saving reviewer rating: ' + error);
+    },
+    complete: function() {
+      submitButton.prop('disabled', false).html(originalText);
+    }
+  });
+});
+
+// HubSpot Deal Management
+$(document).ready(function() {
+  loadHubSpotDealStatus();
+});
+
+function loadHubSpotDealStatus() {
+  $.ajax({
+    url: '/contracts/<%= contract.itemId %>/hubspot-deal',
+    method: 'GET',
+    success: function(response) {
+      if (response.success) {
+        updateHubSpotDealUI(response);
+      } else {
+        $('#hubspotDealStatus').html(
+          '<div class="alert alert-danger">' +
+          '<i class="bi bi-exclamation-triangle"></i> Error loading deal status: ' + response.error +
+          '</div>'
+        );
+      }
+    },
+    error: function(xhr, status, error) {
+      $('#hubspotDealStatus').html(
+        '<div class="alert alert-danger">' +
+        '<i class="bi bi-exclamation-triangle"></i> Error loading deal status: ' + error +
+        '</div>'
+      );
+    }
+  });
+}
+
+function updateHubSpotDealUI(response) {
+  var statusDiv = $('#hubspotDealStatus');
+  
+  if (!response.hasDeal) {
+    statusDiv.html(
+      '<div class="row">' +
+      '<div class="col-md-8">' +
+      '<p class="text-muted">No HubSpot deal has been created for this contract yet.</p>' +
+      '<p class="text-muted">Click the button below to create a new deal in HubSpot with all the contract information.</p>' +
+      '</div>' +
+      '<div class="col-md-4 text-right">' +
+      '<button id="createHubSpotDeal" class="btn btn-success btn-lg">' +
+      '<i class="bi bi-briefcase"></i> Create HubSpot Deal' +
+      '</button>' +
+      '</div>' +
+      '</div>'
+    );
+    
+    // Bind create deal button
+    $('#createHubSpotDeal').click(function() {
+      createHubSpotDeal();
+    });
+  } else {
+    var deal = response.deal;
+    var warningHtml = '';
+    if (response.warning) {
+      warningHtml = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> ' + response.warning + '</div>';
+    }
+    
+    statusDiv.html(
+      warningHtml +
+      '<div class="row">' +
+      '<div class="col-md-8">' +
+      '<h5><i class="bi bi-check-circle text-success"></i> HubSpot Deal Created</h5>' +
+      '<p><strong>Deal Name:</strong> ' + (deal.dealName || 'N/A') + '</p>' +
+      '<p><strong>Deal ID:</strong> ' + deal.dealId + '</p>' +
+      '<p><strong>Amount:</strong> £' + (deal.dealAmount ? deal.dealAmount.toLocaleString() : '0') + '</p>' +
+      '<p><strong>Stage:</strong> <span class="label label-info">' + (deal.dealStage || 'N/A') + '</span></p>' +
+      '<p><strong>Created:</strong> ' + new Date(deal.createdAt).toLocaleDateString() + '</p>' +
+      '<p><strong>Created By:</strong> ' + (deal.createdBy || 'Unknown') + '</p>' +
+      '</div>' +
+      '<div class="col-md-4 text-right">' +
+      '<a href="' + deal.dealUrl + '" target="_blank" class="btn btn-primary btn-lg">' +
+      '<i class="bi bi-external-link"></i> View in HubSpot' +
+      '</a>' +
+      '<br><br>' +
+      '<button id="refreshDealStatus" class="btn btn-info">' +
+      '<i class="bi bi-arrow-clockwise"></i> Refresh Status' +
+      '</button>' +
+      '</div>' +
+      '</div>'
+    );
+    
+    // Bind refresh button
+    $('#refreshDealStatus').click(function() {
+      loadHubSpotDealStatus();
+    });
+  }
+}
+
+function createHubSpotDeal() {
+  var button = $('#createHubSpotDeal');
+  var originalText = button.html();
+  
+  button.prop('disabled', true).html('<i class="bi bi-hourglass"></i> Creating Deal...');
+  
+  $.ajax({
+    url: '/contracts/<%= contract.itemId %>/create-hubspot-deal',
+    method: 'POST',
+    success: function(response) {
+      if (response.success) {
+        alert('HubSpot deal created successfully!');
+        loadHubSpotDealStatus(); // Refresh the UI
+      } else {
+        if (response.error === 'Deal already exists for this contract') {
+          alert('A deal already exists for this contract. Refreshing status...');
+          loadHubSpotDealStatus(); // Refresh to show existing deal
+        } else {
+          alert('Error creating HubSpot deal: ' + response.error);
+        }
+      }
+    },
+    error: function(xhr, status, error) {
+      alert('Error creating HubSpot deal: ' + error);
+    },
+    complete: function() {
+      button.prop('disabled', false).html(originalText);
+    }
+  });
+}
+</script>
+
+<%- include('../../partials/footer') %> 

@@ -1,0 +1,41 @@
+{
+  "name": "contracts-finder",
+  "version": "1.0.0",
+  "description": "AI-powered contract discovery and analysis platform with HubSpot integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://github.com/theodi/contracts-finder.git"
+  },
+  "author": "David Tarrant",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theodi/contracts-finder/issues"
+  },
+  "homepage": "https://github.com/theodi/contracts-finder#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.18.0",
+    "@hubspot/api-client": "^9.1.1",
+    "connect-flash": "^0.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
+    "express-session": "^1.17.3",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.16.5",
+    "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth": "^2.0.0",
+    "passport-google-oauth20": "^2.0.0"
+  }
+}

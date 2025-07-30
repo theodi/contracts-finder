@@ -1,0 +1,162 @@
+<%- include('../../partials/header') %>
+
+<section class="content-block light-grey home-top">
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Organisation Profile</h3>
+        </div>
+        <div class="panel-body">
+          <% if (typeof success !== 'undefined' && success.length > 0) { %>
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle"></i> <%= success %>
+            </div>
+          <% } %>
+          
+          <% if (typeof error !== 'undefined' && error.length > 0) { %>
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle"></i> <%= error %>
+            </div>
+          <% } %>
+          
+          <p class="lead">Set up your organisation profile to enable AI-powered contract matching.</p>
+          
+          <% if (typeof organisation !== 'undefined' && organisation) { %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> 
+              Your organisation profile is configured. AI will use this information to rate contract opportunities.
+            </div>
+          <% } else { %>
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i> 
+              No organisation profile found. Please complete the form below to enable AI contract rating.
+            </div>
+          <% } %>
+
+          <form method="POST" action="/organisation">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="name">Organisation Name *</label>
+                  <input type="text" class="form-control" id="name" name="name" 
+                         value="<%= organisation ? organisation.name : '' %>" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="description">Description *</label>
+                  <textarea class="form-control" id="description" name="description" rows="4" required
+                            placeholder="Describe what your organisation does, your mission, and key areas of expertise..."><%= organisation ? organisation.description : '' %></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label for="industry">Industry *</label>
+                  <input type="text" class="form-control" id="industry" name="industry" 
+                         value="<%= organisation ? organisation.industry : '' %>" required
+                         placeholder="e.g., Technology, Healthcare, Education, etc.">
+                </div>
+                
+                <div class="form-group">
+                  <label for="size">Organisation Size *</label>
+                  <select class="form-control" id="size" name="size" required>
+                    <option value="">Select size...</option>
+                    <option value="startup" <%= organisation && organisation.size === 'startup' ? 'selected' : '' %>>Startup (1-10 employees)</option>
+                    <option value="small" <%= organisation && organisation.size === 'small' ? 'selected' : '' %>>Small (11-50 employees)</option>
+                    <option value="medium" <%= organisation && organisation.size === 'medium' ? 'selected' : '' %>>Medium (51-250 employees)</option>
+                    <option value="large" <%= organisation && organisation.size === 'large' ? 'selected' : '' %>>Large (250+ employees)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="capabilities">Key Capabilities</label>
+                  <textarea class="form-control" id="capabilities" name="capabilities" rows="3"
+                            placeholder="Enter capabilities separated by commas (e.g., Software Development, Data Analysis, Project Management)"><%= organisation ? organisation.capabilities.join(', ') : '' %></textarea>
+                  <small class="form-text text-muted">What are your organisation's key strengths and capabilities?</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="interests">Areas of Interest</label>
+                  <textarea class="form-control" id="interests" name="interests" rows="3"
+                            placeholder="Enter interests separated by commas (e.g., Digital Transformation, AI/ML, Cloud Services)"><%= organisation ? organisation.interests.join(', ') : '' %></textarea>
+                  <small class="form-text text-muted">What types of projects or opportunities are you most interested in?</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="exclusions">What We Don't Do</label>
+                  <textarea class="form-control" id="exclusions" name="exclusions" rows="3"
+                            placeholder="Enter exclusions separated by commas (e.g., Hardware Installation, Medical Services, Legal Advice)"><%= organisation ? organisation.exclusions.join(', ') : '' %></textarea>
+                  <small class="form-text text-muted">What types of work or services are outside your scope or capabilities?</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="searchKeywords">Search Keywords</label>
+                  <textarea class="form-control" id="searchKeywords" name="searchKeywords" rows="3"
+                            placeholder="Enter keywords separated by commas (e.g., data, software, digital, cloud)"><%= organisation ? organisation.searchKeywords.join(', ') : '' %></textarea>
+                  <small class="form-text text-muted">What keywords should we search for in Contracts Finder? (Default: 'data')</small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="location">Location</label>
+                  <input type="text" class="form-control" id="location" name="location" 
+                         value="<%= organisation ? organisation.location : '' %>"
+                         placeholder="e.g., London, Manchester, Remote">
+                </div>
+                
+                <div class="form-group">
+                  <label for="website">Website</label>
+                  <input type="url" class="form-control" id="website" name="website" 
+                         value="<%= organisation ? organisation.website : '' %>"
+                         placeholder="https://www.yourcompany.com">
+                </div>
+                
+                <div class="form-group">
+                  <label for="contactEmail">Contact Email</label>
+                  <input type="email" class="form-control" id="contactEmail" name="contactEmail" 
+                         value="<%= organisation ? organisation.contactEmail : '' %>"
+                         placeholder="contact@yourcompany.com">
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="bi bi-save"></i> Save Organisation Profile
+                </button>
+                <a href="/contracts" class="btn btn-default btn-lg">
+                  <i class="bi bi-arrow-left"></i> Back to Contracts
+                </a>
+              </div>
+            </div>
+          </form>
+          
+          <% if (typeof organisation !== 'undefined' && organisation) { %>
+            <hr>
+            <div class="row">
+              <div class="col-md-12">
+                <h4>Current Profile Summary</h4>
+                <div class="well">
+                  <p><strong>Name:</strong> <%= organisation.name %></p>
+                  <p><strong>Industry:</strong> <%= organisation.industry %></p>
+                  <p><strong>Size:</strong> <%= organisation.size.charAt(0).toUpperCase() + organisation.size.slice(1) %></p>
+                  <p><strong>Location:</strong> <%= organisation.location || 'Not specified' %></p>
+                  <p><strong>Capabilities:</strong> <%= organisation.capabilities.length > 0 ? organisation.capabilities.join(', ') : 'Not specified' %></p>
+                  <p><strong>Interests:</strong> <%= organisation.interests.length > 0 ? organisation.interests.join(', ') : 'Not specified' %></p>
+                  <p><strong>Exclusions:</strong> <%= organisation.exclusions && organisation.exclusions.length > 0 ? organisation.exclusions.join(', ') : 'Not specified' %></p>
+                  <p><strong>Search Keywords:</strong> <%= organisation.searchKeywords && organisation.searchKeywords.length > 0 ? organisation.searchKeywords.join(', ') : 'data (default)' %></p>
+                  <p><strong>Last Updated:</strong> <%= new Date(organisation.updatedAt).toISOString().split('T')[0] %></p>
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<%- include('../../partials/footer') %> 

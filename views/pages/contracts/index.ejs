@@ -1,0 +1,258 @@
+<%- include('../../partials/header') %>
+
+<section class="content-block light-grey home-top">
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Contracts Finder</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <button id="manualSearch" class="btn btn-success">
+                <i class="bi bi-search"></i> Trigger Manual Search
+              </button>
+              <button id="initialImport" class="btn btn-warning">
+                <i class="bi bi-download"></i> Run Initial Import
+              </button>
+              <button id="rateAll" class="btn btn-info">
+                <i class="bi bi-star"></i> Rate All Contracts
+              </button>
+              <span id="searchStatus" class="ml-2"></span>
+            </div>
+            <div class="col-md-6 text-right">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="showMatchesOnly">
+                <label class="form-check-label" for="showMatchesOnly">
+                  Show Matches Only
+                </label>
+              </div>
+              <small class="text-muted">Last updated: <span id="lastUpdated">-</span></small>
+            </div>
+          </div>
+          
+          <table id="contractsTable" class="table table-striped table-bordered" style="width:100%">
+            <thead>
+              <tr>
+                <th>Organisation</th>
+                <th>Title</th>
+                <th>Published Date</th>
+                <th>Deadline</th>
+                <th>Value Range</th>
+                <th>AI Rating</th>
+                <th>Reviewer Rating</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Data will be loaded via AJAX -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- DataTables CSS and JS -->
+<link href="/lib/DataTables/datatables.min.css" rel="stylesheet" type="text/css">
+<script src="/lib/DataTables/datatables.min.js"></script>
+
+
+<script>
+$(document).ready(function() {
+  // Initialize DataTable
+  var table = $('#contractsTable').DataTable({
+    processing: true,
+    serverSide: false, // Use client-side processing
+    ajax: {
+      url: '/contracts/api/data',
+      type: 'GET',
+      data: function(d) {
+        d.showMatchesOnly = $('#showMatchesOnly').is(':checked');
+      }
+    },
+    columns: [
+      { data: 0 }, // Organisation
+      { data: 1 }, // Title
+      { data: 2 }, // Published Date
+      { data: 3 }, // Deadline
+      { data: 4 }, // Value Range
+      { 
+        data: 5, // AI Rating
+        render: function(data, type, row) {
+          if (type === 'display') {
+            return data; // Return the HTML for display
+          }
+          return row[8]; // Return the numeric score for sorting/filtering
+        }
+      },
+      { data: 6 }, // Reviewer Rating
+      { 
+        data: 7, // Actions
+        orderable: false,
+        searchable: false
+      },
+      { 
+        data: 8, // Hidden rating score for sorting
+        visible: false
+      }
+    ],
+    responsive: true,
+    pageLength: 25,
+    order: [[5, 'desc']], // Sort by AI Rating descending (highest rated first)
+    language: {
+      search: "Search contracts:",
+      lengthMenu: "Show _MENU_ contracts per page",
+      info: "Showing _START_ to _END_ of _TOTAL_ contracts"
+    }
+  });
+
+  // Manual search trigger
+  $('#manualSearch').click(function() {
+    var button = $(this);
+    var originalText = button.text();
+    
+    button.prop('disabled', true).text('Searching...');
+    $('#searchStatus').html('<span class="text-info">Searching contracts finder...</span>');
+    
+    $.ajax({
+      url: '/contracts/search',
+      method: 'POST',
+      data: { keyword: 'data' },
+      success: function(response) {
+        if (response.success) {
+          $('#searchStatus').html('<span class="text-success">Search completed! Processed: ' + 
+            response.result.processed + ', New: ' + response.result.new + ', Updated: ' + response.result.updated + '</span>');
+          table.ajax.reload();
+          $('#lastUpdated').text(new Date().toLocaleString());
+        } else {
+          $('#searchStatus').html('<span class="text-danger">Search failed: ' + response.error + '</span>');
+        }
+      },
+      error: function(xhr, status, error) {
+        $('#searchStatus').html('<span class="text-danger">Search failed: ' + error + '</span>');
+      },
+      complete: function() {
+        button.prop('disabled', false).text(originalText);
+      }
+    });
+  });
+
+  // Initial import trigger
+  $('#initialImport').click(function() {
+    var button = $(this);
+    var originalText = button.text();
+    
+    button.prop('disabled', true).text('Importing...');
+    $('#searchStatus').html('<span class="text-info">Running initial import (this may take a few minutes)...</span>');
+    
+    $.ajax({
+      url: '/contracts/initial-import',
+      method: 'POST',
+      success: function(response) {
+        if (response.success) {
+          if (response.result.skipped) {
+            $('#searchStatus').html('<span class="text-warning">Database already has ' + response.result.existingCount + ' contracts. Skipped initial import.</span>');
+          } else {
+            $('#searchStatus').html('<span class="text-success">Initial import completed! Total processed: ' + 
+              response.result.processed + ', New: ' + response.result.new + ', Updated: ' + response.result.updated + '</span>');
+          }
+          table.ajax.reload();
+          $('#lastUpdated').text(new Date().toLocaleString());
+        } else {
+          $('#searchStatus').html('<span class="text-danger">Initial import failed: ' + response.error + '</span>');
+        }
+      },
+      error: function(xhr, status, error) {
+        $('#searchStatus').html('<span class="text-danger">Initial import failed: ' + error + '</span>');
+      },
+      complete: function() {
+        button.prop('disabled', false).text(originalText);
+      }
+    });
+  });
+
+  // Rate all contracts
+  $('#rateAll').click(function() {
+    var button = $(this);
+    var originalText = button.text();
+    
+    button.prop('disabled', true).text('Rating...');
+    $('#searchStatus').html('<span class="text-info">Rating contracts with AI (this may take several minutes)...</span>');
+    
+    $.ajax({
+      url: '/contracts/rate-all',
+      method: 'POST',
+      success: function(response) {
+        if (response.success) {
+          if (response.result.skipped) {
+            $('#searchStatus').html('<span class="text-warning">Rating skipped: ' + response.message + '</span>');
+          } else {
+            $('#searchStatus').html('<span class="text-success">Rating completed! Processed: ' + 
+              response.result.processed + ', Rated: ' + response.result.rated + ', Errors: ' + response.result.errors + '</span>');
+          }
+          table.ajax.reload();
+          $('#lastUpdated').text(new Date().toLocaleString());
+        } else {
+          $('#searchStatus').html('<span class="text-danger">Rating failed: ' + response.error + '</span>');
+        }
+      },
+      error: function(xhr, status, error) {
+        $('#searchStatus').html('<span class="text-danger">Rating failed: ' + error + '</span>');
+      },
+      complete: function() {
+        button.prop('disabled', false).text(originalText);
+      }
+    });
+  });
+
+  // Show matches only checkbox
+  $('#showMatchesOnly').change(function() {
+    table.ajax.reload();
+  });
+
+  // Handle individual contract rating
+  $('#contractsTable').on('click', '.rate-single', function() {
+    var button = $(this);
+    var itemId = button.data('item-id');
+    var originalText = button.html();
+    
+    button.prop('disabled', true).html('<i class="bi bi-hourglass"></i> Rating...');
+    
+    $.ajax({
+      url: '/contracts/rate/' + itemId,
+      method: 'POST',
+      success: function(response) {
+        if (response.success) {
+          // Update the button to show re-rate
+          button.removeClass('btn-info').addClass('btn-warning');
+          button.html('<i class="bi bi-star"></i> Re-rate');
+          
+          // Show success message
+          $('#searchStatus').html('<span class="text-success">Contract rated successfully!</span>');
+          
+          // Reload the table to update the rating display
+          table.ajax.reload();
+        } else {
+          $('#searchStatus').html('<span class="text-danger">Rating failed: ' + response.error + '</span>');
+        }
+      },
+      error: function(xhr, status, error) {
+        $('#searchStatus').html('<span class="text-danger">Rating failed: ' + error + '</span>');
+      },
+      complete: function() {
+        button.prop('disabled', false);
+      }
+    });
+  });
+
+  // Update last updated time on page load
+  $('#lastUpdated').text(new Date().toLocaleString());
+});
+</script>
+
+<%- include('../../partials/footer') %> 
