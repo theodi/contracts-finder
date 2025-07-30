@@ -126,8 +126,7 @@ router.get('/:itemId', ensureAuthenticated, async (req, res) => {
 // Manual search trigger
 router.post('/search', ensureAuthenticated, async (req, res) => {
   try {
-    const { keyword = 'data' } = req.body;
-    const result = await triggerManualSearch(keyword);
+    const result = await triggerManualSearch();
     res.json({ success: true, result });
   } catch (error) {
     console.error('Error triggering manual search:', error);

@@ -12,15 +12,11 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <button id="manualSearch" class="btn btn-success">
-                <i class="bi bi-search"></i> Trigger Manual Search
-              </button>
-              <button id="initialImport" class="btn btn-warning">
-                <i class="bi bi-download"></i> Run Initial Import
+                <i class="bi bi-search"></i> Check for Updates
               </button>
               <button id="rateAll" class="btn btn-info">
                 <i class="bi bi-star"></i> Rate All Contracts
               </button>
-              <span id="searchStatus" class="ml-2"></span>
             </div>
             <div class="col-md-6 text-right">
               <div class="form-check">
@@ -30,6 +26,20 @@
                 </label>
               </div>
               <small class="text-muted">Last updated: <span id="lastUpdated">-</span></small>
+            </div>
+          </div>
+          
+          <!-- Status Info Box -->
+          <div id="statusInfoBox" class="alert" style="display: none; margin-bottom: 20px;">
+            <div class="row">
+              <div class="col-md-8">
+                <span id="searchStatus"></span>
+              </div>
+              <div class="col-md-4 text-right">
+                <button type="button" class="close" id="closeStatusBox" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
             </div>
           </div>
           
@@ -116,25 +126,24 @@ $(document).ready(function() {
     var button = $(this);
     var originalText = button.text();
     
-    button.prop('disabled', true).text('Searching...');
-    $('#searchStatus').html('<span class="text-info">Searching contracts finder...</span>');
+    button.prop('disabled', true).text('Checking for updates...');
+    showStatusBox('info', '<i class="bi bi-hourglass"></i> Checking for contract updates...');
     
     $.ajax({
       url: '/contracts/search',
       method: 'POST',
-      data: { keyword: 'data' },
       success: function(response) {
         if (response.success) {
-          $('#searchStatus').html('<span class="text-success">Search completed! Processed: ' + 
-            response.result.processed + ', New: ' + response.result.new + ', Updated: ' + response.result.updated + '</span>');
+          showStatusBox('success', '<i class="bi bi-check-circle"></i> Update check completed! Processed: ' + 
+            response.result.processed + ', New: ' + response.result.new + ', Updated: ' + response.result.updated);
           table.ajax.reload();
           $('#lastUpdated').text(new Date().toLocaleString());
         } else {
-          $('#searchStatus').html('<span class="text-danger">Search failed: ' + response.error + '</span>');
+          showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Update check failed: ' + response.error);
         }
       },
       error: function(xhr, status, error) {
-        $('#searchStatus').html('<span class="text-danger">Search failed: ' + error + '</span>');
+        showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Update check failed: ' + error);
       },
       complete: function() {
         button.prop('disabled', false).text(originalText);
@@ -142,39 +151,7 @@ $(document).ready(function() {
     });
   });
 
-  // Initial import trigger
-  $('#initialImport').click(function() {
-    var button = $(this);
-    var originalText = button.text();
-    
-    button.prop('disabled', true).text('Importing...');
-    $('#searchStatus').html('<span class="text-info">Running initial import (this may take a few minutes)...</span>');
-    
-    $.ajax({
-      url: '/contracts/initial-import',
-      method: 'POST',
-      success: function(response) {
-        if (response.success) {
-          if (response.result.skipped) {
-            $('#searchStatus').html('<span class="text-warning">Database already has ' + response.result.existingCount + ' contracts. Skipped initial import.</span>');
-          } else {
-            $('#searchStatus').html('<span class="text-success">Initial import completed! Total processed: ' + 
-              response.result.processed + ', New: ' + response.result.new + ', Updated: ' + response.result.updated + '</span>');
-          }
-          table.ajax.reload();
-          $('#lastUpdated').text(new Date().toLocaleString());
-        } else {
-          $('#searchStatus').html('<span class="text-danger">Initial import failed: ' + response.error + '</span>');
-        }
-      },
-      error: function(xhr, status, error) {
-        $('#searchStatus').html('<span class="text-danger">Initial import failed: ' + error + '</span>');
-      },
-      complete: function() {
-        button.prop('disabled', false).text(originalText);
-      }
-    });
-  });
+
 
   // Rate all contracts
   $('#rateAll').click(function() {
@@ -182,7 +159,7 @@ $(document).ready(function() {
     var originalText = button.text();
     
     button.prop('disabled', true).text('Rating...');
-    $('#searchStatus').html('<span class="text-info">Rating contracts with AI (this may take several minutes)...</span>');
+    showStatusBox('info', '<i class="bi bi-hourglass"></i> Rating contracts with AI (this may take several minutes)...');
     
     $.ajax({
       url: '/contracts/rate-all',
@@ -190,19 +167,19 @@ $(document).ready(function() {
       success: function(response) {
         if (response.success) {
           if (response.result.skipped) {
-            $('#searchStatus').html('<span class="text-warning">Rating skipped: ' + response.message + '</span>');
+            showStatusBox('warning', '<i class="bi bi-info-circle"></i> Rating skipped: ' + response.message);
           } else {
-            $('#searchStatus').html('<span class="text-success">Rating completed! Processed: ' + 
-              response.result.processed + ', Rated: ' + response.result.rated + ', Errors: ' + response.result.errors + '</span>');
+            showStatusBox('success', '<i class="bi bi-check-circle"></i> Rating completed! Processed: ' + 
+              response.result.processed + ', Rated: ' + response.result.rated + ', Errors: ' + response.result.errors);
           }
           table.ajax.reload();
           $('#lastUpdated').text(new Date().toLocaleString());
         } else {
-          $('#searchStatus').html('<span class="text-danger">Rating failed: ' + response.error + '</span>');
+          showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Rating failed: ' + response.error);
         }
       },
       error: function(xhr, status, error) {
-        $('#searchStatus').html('<span class="text-danger">Rating failed: ' + error + '</span>');
+        showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Rating failed: ' + error);
       },
       complete: function() {
         button.prop('disabled', false).text(originalText);
@@ -233,16 +210,16 @@ $(document).ready(function() {
           button.html('<i class="bi bi-star"></i> Re-rate');
           
           // Show success message
-          $('#searchStatus').html('<span class="text-success">Contract rated successfully!</span>');
+          showStatusBox('success', '<i class="bi bi-check-circle"></i> Contract rated successfully!');
           
           // Reload the table to update the rating display
           table.ajax.reload();
         } else {
-          $('#searchStatus').html('<span class="text-danger">Rating failed: ' + response.error + '</span>');
+          showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Rating failed: ' + response.error);
         }
       },
       error: function(xhr, status, error) {
-        $('#searchStatus').html('<span class="text-danger">Rating failed: ' + error + '</span>');
+        showStatusBox('danger', '<i class="bi bi-exclamation-triangle"></i> Rating failed: ' + error);
       },
       complete: function() {
         button.prop('disabled', false);
@@ -252,6 +229,39 @@ $(document).ready(function() {
 
   // Update last updated time on page load
   $('#lastUpdated').text(new Date().toLocaleString());
+  
+  // Helper function to show status box
+  function showStatusBox(type, message) {
+    var statusBox = $('#statusInfoBox');
+    var statusText = $('#searchStatus');
+    
+    // Remove all alert classes and add the appropriate one
+    statusBox.removeClass('alert-info alert-success alert-warning alert-danger')
+             .addClass('alert-' + type);
+    
+    // Set the message
+    statusText.html(message);
+    
+    // Show the box
+    statusBox.show();
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+      setTimeout(function() {
+        hideStatusBox();
+      }, 5000);
+    }
+  }
+  
+  // Helper function to hide status box
+  function hideStatusBox() {
+    $('#statusInfoBox').hide();
+  }
+  
+  // Close status box when X is clicked
+  $('#closeStatusBox').click(function() {
+    hideStatusBox();
+  });
 });
 </script>
 
