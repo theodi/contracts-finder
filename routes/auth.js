@@ -41,9 +41,39 @@ router.get('/django/callback',
 );
 
 router.post('/logout', function(req, res, next){
+  console.log('Logout requested - destroying session');
   req.logout(function(err) {
-    if (err) { return next(err); }
-    res.redirect('/');
+    if (err) { 
+      console.error('Logout error:', err);
+      return next(err); 
+    }
+    req.session.destroy(function(err) {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return next(err);
+      }
+      console.log('Logout successful - redirecting to home');
+      res.redirect('/');
+    });
+  });
+});
+
+// GET logout route for direct access
+router.get('/logout', function(req, res, next){
+  console.log('GET logout requested - destroying session');
+  req.logout(function(err) {
+    if (err) { 
+      console.error('Logout error:', err);
+      return next(err); 
+    }
+    req.session.destroy(function(err) {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return next(err);
+      }
+      console.log('Logout successful - redirecting to home');
+      res.redirect('/');
+    });
   });
 });
 

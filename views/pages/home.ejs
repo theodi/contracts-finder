@@ -1,5 +1,154 @@
 <%- include('../partials/header') %>
-<section class="content-block light-grey home-top">
-<h1>Contracts Finder</h1>
-</section>
+
+<% if(user) { %>
+  <!-- Logged in user - redirect to contracts -->
+  <section class="content-block light-grey home-top">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Welcome to Contracts Finder</h3>
+            </div>
+            <div class="panel-body">
+              <p>Welcome back, <%= user.displayName || user.email %>!</p>
+              <p>You're already logged in. <a href="/contracts" class="btn btn-primary">View Contracts</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<% } else { %>
+  <!-- Logged out user - show landing page -->
+  <section class="content-block light-grey home-top">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <div class="hero-section" style="padding: 60px 0;">
+            <h1 style="font-size: 3.5rem; margin-bottom: 30px; color: #2c3e50;">
+              <i class="bi bi-search" style="color: #3498db;"></i> Contracts Finder
+            </h1>
+            <p class="lead" style="font-size: 1.5rem; margin-bottom: 40px; color: #7f8c8d;">
+              AI-powered contract discovery and analysis platform
+            </p>
+            
+            <div class="login-section" style="margin: 50px 0;">
+              <a href="/auth/google" class="btn btn-success btn-lg" style="font-size: 1.3rem; padding: 15px 40px;">
+                <i class="bi bi-google"></i> Sign in with Google
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-block">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="panel panel-info">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                <i class="bi bi-search"></i> Smart Contract Discovery
+              </h4>
+            </div>
+            <div class="panel-body">
+              <p>Automatically discover relevant contracts using AI-powered keyword matching and analysis.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                <i class="bi bi-star"></i> AI Rating System
+              </h4>
+            </div>
+            <div class="panel-body">
+              <p>Get intelligent ratings and relevance scores for each contract opportunity.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="panel panel-warning">
+            <div class="panel-heading">
+              <h4 class="panel-title">
+                <i class="bi bi-briefcase"></i> HubSpot Integration
+              </h4>
+            </div>
+            <div class="panel-body">
+              <p>Seamlessly create deals in HubSpot with all contract information automatically populated.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-block light-grey">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">How It Works</h3>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-md-3 text-center">
+                  <div class="step-circle" style="width: 80px; height: 80px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem;">
+                    1
+                  </div>
+                  <h5>Sign In</h5>
+                  <p>Quick and secure Google authentication</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <div class="step-circle" style="width: 80px; height: 80px; border-radius: 50%; background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem;">
+                    2
+                  </div>
+                  <h5>Discover</h5>
+                  <p>AI finds relevant contracts for your organization</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <div class="step-circle" style="width: 80px; height: 80px; border-radius: 50%; background: #f39c12; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem;">
+                    3
+                  </div>
+                  <h5>Analyze</h5>
+                  <p>Get ratings and detailed analysis</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <div class="step-circle" style="width: 80px; height: 80px; border-radius: 50%; background: #27ae60; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem;">
+                    4
+                  </div>
+                  <h5>Act</h5>
+                  <p>Create deals in HubSpot and track opportunities</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-block">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <div class="cta-section" style="padding: 40px 0;">
+            <h3 style="margin-bottom: 30px;">Ready to find your next contract opportunity?</h3>
+            <a href="/auth/google" class="btn btn-primary btn-lg" style="font-size: 1.2rem; padding: 12px 30px;">
+              <i class="bi bi-google"></i> Get Started Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<% } %>
+
 <%- include('../partials/footer') %>

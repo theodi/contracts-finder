@@ -14,6 +14,20 @@
 
 <script type="text/javascript" src="/lib/jquery-3.7.1.min.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener for logout link
+    var logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Use window.location for logout (simpler than form submission)
+            window.location.href = '/auth/logout';
+        });
+    }
+});
+</script>
+
 <link href="/css/water.css" rel="stylesheet">
 <link href="/lib/bootstrap.min.css" rel="stylesheet">
 <link href="/lib/bootstrap-icons.min.css" rel="stylesheet">
@@ -43,9 +57,7 @@
 					<li><a href="/organisation" class="toggle-link <% if (page.link === '/organisation') { %>selected<% } %>">Organisation</a></li>
 					<li>
 						<a style="padding: 0;" class="toggle-link <% if (page.link === '/auth/profile') { %>selected<% } %>" href="/auth/profile"><%= user ? (user.displayName || (user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user.email)) : 'Guest' %></a>
-						<form style="display: inline-flex;" id="logout_form" action="/auth/logout" method="post">
-							 &nbsp;<a href="javascript:;" onclick="document.getElementById('logout_form').submit();">(Logout)</a>
-						</form>
+						<a href="/auth/logout" id="logout-link" style="margin-left: 5px;">(Logout)</a>
 					</li>
 				<% } else { %>
 					<li><a href="/auth/google" class="toggle-link">Login</a></li>
