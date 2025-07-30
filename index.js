@@ -64,9 +64,9 @@ app.use(cors({
   },
   credentials: true
 }));
-
+/*
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
-
+*/
 const port = process.env.PORT || 3080;
 app.set('view engine', 'ejs');
 
