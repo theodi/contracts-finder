@@ -62,7 +62,9 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 /*
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
@@ -95,13 +97,15 @@ app.use(express.urlencoded({ extended: false }));
 
 // Session configuration
 app.use(session({
+  name: 'contracts-finder.sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false, // Change to false
+  saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only
+    secure: process.env.NODE_ENV === 'production' && process.env.FORCE_HTTPS === 'true',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax'
   }
 }));
 
@@ -167,11 +171,23 @@ app.use('/organisation', organisationRoutes);
 
 app.get('/', function(req, res) {
   const page = {
-    title: "ODI Template",
+    title: "Contracts Finder",
     link: "/"
   };
   res.locals.page = page;
+  res.locals.user = req.user;
   res.render('pages/home');
+});
+
+// Debug route to check session status
+app.get('/debug-session', function(req, res) {
+  res.json({
+    isAuthenticated: req.isAuthenticated(),
+    session: req.session ? 'exists' : 'missing',
+    user: req.user ? 'exists' : 'missing',
+    sessionID: req.sessionID,
+    cookie: req.session ? req.session.cookie : 'no session'
+  });
 });
 
 /* Setup private directory, everything in here requires authentication */

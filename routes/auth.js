@@ -21,6 +21,10 @@ router.get('/django',
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/error' }),
   async (req, res) => {
+    console.log('Google callback - user authenticated:', req.isAuthenticated());
+    console.log('Google callback - user:', req.user);
+    console.log('Google callback - session:', req.session);
+    
     req.session.authMethod = 'google';
     res.redirect('/contracts');
   }
